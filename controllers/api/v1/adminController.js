@@ -31,8 +31,8 @@ module.exports.adminLogin = async (req, res) => {
         if (checkEmail) {
             let checkPassword = await bcrypt.compare(req.body.password, checkEmail.password);
             if (checkPassword) {
-                let token = jwt.sign({ registerAdmin: checkEmail }, "secrateKey");
-                return res.status(200).json({ msg: "user login successfully", data:token });
+                let token = jwt.sign({ userData: checkEmail }, "secrateKey");
+                return res.status(200).json({ msg: "user login successfully", data: token });
             }
             else {
                 return res.status(200).json({ msg: "Invalid pasword" });
@@ -44,4 +44,71 @@ module.exports.adminLogin = async (req, res) => {
     } catch (err) {
         return res.status(400).json({ msg: "Something went wrong", error: err });
     }
-}
+};
+
+module.exports.adminProfile = async (req, res) => {
+    try {
+        return res.status(200).json({ msg: "User profile", data: req.user });
+    } catch (err) {
+        return res.status(200).json({ msg: "Something went wrong", error: err });
+    }
+};
+
+module.exports.editAdminProfile = async (req, res) => {
+    try {
+        let updateData = await adminModel.findById(req.params.id);
+        if (updateData) {
+            let updatedAdminData = await adminModel.findByIdAndUpdate(req.params.id, req.body);
+            if (updatedAdminData) {
+                return res.status(200).json({ msg: "Admin data updated successfully", data: updatedAdminData });
+            } else {
+                return res.status(500).json({ msg: "Something went wrong while updating admin data" });
+            }
+        } else {
+            return res.status(404).json({ msg: "Admin not found" });
+        }
+    } catch (error) {
+        return res.status(500).json({ msg: "Something went wrong", error: error });
+    }
+};
+
+module.exports.adminLogout = async (req, res) => {
+    try {
+        req.session.destroy((err) => {
+            if (err) {
+                return res.status(400).json({ msg: "Something went wrong" });
+            } else {
+                return res.status(200).json({ msg: "Go to login page for Login" });
+            }
+        })
+    } catch (error) {
+        return res.status(500).json({ msg: "Something went wrong", error: error });
+    }
+};
+
+module.exports.changeAdminPassword = async (req, res) => {
+    try {
+        let CheckCurrentPassword = await bcrypt.compare(req.body.currentPassword, req.user.password);
+        if (CheckCurrentPassword) {
+            if (req.body.currentPassword != req.body.newPassword) {
+                if (req.body.newPassword == req.body.confirmPassword) {
+                    req.body.password = await bcrypt.hash(req.body.newPassword, 10);
+                    let updatedPassword = await adminModel.findByIdAndUpdate(req.user._id, req.body);
+                    if (updatedPassword) {
+                        return res.status(200).json({ msg: "user password is upadted" });
+                    } else {
+                        return res.status(200).json({ msg: "Something went wrong whilw trying to update " });
+                    }
+                } else {
+                    return res.status(200).json({ msg: "New passowrd & Confirm password should be the same" });
+                }
+            } else {
+                return res.status(200).json({ msg: "Currnet passowrd & New password should not be the same" });
+            }
+        } else {
+            return res.status(200).json({ msg: "Enter valid current passowrd" });
+        }
+    } catch (error) {
+        return res.status(200).json({ msg: "Something went wrong", error: error });
+    }
+};
