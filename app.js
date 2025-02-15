@@ -20,6 +20,8 @@ const db = require("./config/db");
 
 app.use(express.urlencoded());
 app.use("/api", require("./routes/api/v1/adminRoutes"));
+app.use("/faculty", require("./routes/api/v1/facultyRoutes"));
+app.use("/student", require("./routes/api/v1/studentRoutes"));
 
 app.listen(port, (err) => {
     err ? console.log(err) : console.log(`Serevr started on port :${port}`);

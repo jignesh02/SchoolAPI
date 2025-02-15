@@ -19,6 +19,38 @@ passport.use(new jStrategy(opts, async function (payload, done) {
     }
 }));
 
+let options = {
+    jwtFromRequest: Ejwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: "FacultyKey"
+};
+
+const facultyModel = require('../models/facultyModel');
+
+passport.use("faculty", new jStrategy(options, async function (payload, done) {
+    let checkFacultyData = await facultyModel.findOne({ email: payload.ft.email });
+    if (checkFacultyData) {
+        return done(null, checkFacultyData);
+    } else {
+        return done(null, false);
+    }
+}));
+
+let studentOption = {
+    jwtFromRequest: Ejwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: "studentKey"
+};
+
+const studentModel = require('../models/studentModel');
+
+passport.use("student", new jStrategy(studentOption, async function (payload, done) {
+    let checkStudentData = await studentModel.findOne({ email: payload.st.email });
+    if (checkStudentData) {
+        return done(null, checkStudentData);
+    } else {
+        return done(null, false);
+    }
+}));
+
 passport.serializeUser((user, done) => {
     return done(null, user.id)
 });
